@@ -1,0 +1,89 @@
+# Production-mode stack: Postgres + Redis + Celery worker + backend + frontend.
+# Local day-to-day dev does NOT need this file — run backend/frontend directly
+# with SQLite + in-process background tasks (see README.md).
+name: ai-software-architect
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-architect}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-architect}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_architect}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-architect}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      JOB_RUNNER: celery
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-architect}:${POSTGRES_PASSWORD:-architect}@postgres:5432/${POSTGRES_DB:-ai_architect}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CHROMA_PERSIST_DIR: /data/chroma
+    volumes:
+      - chroma_data:/data/chroma
+      - repo_workspace:/data/repos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  celery_worker:
+    build: ./backend
+    restart: unless-stopped
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=INFO"]
+    env_file: .env
+    environment:
+      JOB_RUNNER: celery
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-architect}:${POSTGRES_PASSWORD:-architect}@postgres:5432/${POSTGRES_DB:-ai_architect}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CHROMA_PERSIST_DIR: /data/chroma
+    volumes:
+      - chroma_data:/data/chroma
+      - repo_workspace:/data/repos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  chroma_data:
+  repo_workspace:

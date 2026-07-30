@@ -1,0 +1,86 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend: Install deps",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/Scripts/pip.exe",
+      "args": ["install", "-e", ".[dev]"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Backend: Run dev server",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+      "args": ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": ".", "file": 1, "location": 2, "message": 3 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Started server process",
+          "endsPattern": "Application startup complete"
+        }
+      },
+      "presentation": { "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "Backend: Run tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+      "args": ["-m", "pytest", "tests/", "-v"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Backend: Lint (ruff)",
+      "type": "shell",
+      "command": "${workspaceFolder}/backend/.venv/Scripts/python.exe",
+      "args": ["-m", "ruff", "check", "app", "tests"],
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Install deps",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Frontend: Run dev server",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "isBackground": true,
+      "problemMatcher": {
+        "pattern": { "regexp": ".", "file": 1, "location": 2, "message": 3 },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "VITE",
+          "endsPattern": "ready in"
+        }
+      },
+      "presentation": { "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "Frontend: Lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "options": { "cwd": "${workspaceFolder}/frontend" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Full Stack (backend + frontend)",
+      "dependsOn": ["Backend: Run dev server", "Frontend: Run dev server"],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    }
+  ]
+}

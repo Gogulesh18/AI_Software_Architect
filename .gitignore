@@ -1,0 +1,51 @@
+# --- Brief's explicit ignore list ---
+node_modules/
+build/
+dist/
+target/
+bin/
+vendor/
+.venv/
+__pycache__/
+
+# --- Python ---
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite3
+
+# --- Node / frontend ---
+.vite/
+*.local
+*.tsbuildinfo
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- App runtime data ---
+.data/
+*.log
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- IDE / OS ---
+# Shared VS Code config (settings/tasks/launch/extensions) is committed on
+# purpose — everything else in .vscode/ (personal overrides, etc.) is not.
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
